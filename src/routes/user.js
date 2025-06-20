@@ -13,4 +13,8 @@ router.post('/login', (req, res) => {
     res.send('user logged in');
 });
 
+router.patch('/update', (req, res) => {
+    res.send('user data updated');
+});
+
 module.exports = router;
