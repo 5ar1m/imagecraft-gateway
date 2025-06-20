@@ -1,11 +1,7 @@
-const express = require('express')
-
+const express = require('express');
 const app = express();
+const userRoutes = require('./routes/user');
 
-app.get('/', (req, res) => {
-    res.json({
-        'message': 'welcome to imagecraft'
-    });
-});
+app.use('/user', userRoutes);
 
 module.exports = app;
