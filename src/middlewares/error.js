@@ -1,16 +1,8 @@
-require('dotenv').config();
+const { StatusCodes } = require('http-status-codes');
 
-function errorHandler(err, req, res, next) {
-  console.error('Error:', err);
-
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Something went wrong';
-
-  res.status(statusCode).json({
-    success: false,
-    message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-  });
+function internalErr(err, req, res) {
+    console.log(err.stack);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Something Went Wrong' });
 }
 
-module.exports = errorHandler;
+module.exports = internalErr;
