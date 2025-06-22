@@ -3,7 +3,7 @@ const { StatusCodes } = require('http-status-codes');
 const internalErr = require('../middlewares/error');
 require('dotenv').config();
 
-function authMiddleware(req, res, next) {
+async function authMiddleware(req, res, next) {
   try {
     const token = req?.cookies?.token;
 

@@ -14,4 +14,14 @@ model User {
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
+  Image     Image[]
+}
+
+model Image {
+  id         Int      @id @default(autoincrement())
+  name       String
+  mimeType   String
+  uploadedAt DateTime @default(now())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
 }
