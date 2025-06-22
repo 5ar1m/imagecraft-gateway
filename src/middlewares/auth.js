@@ -1,18 +1,28 @@
-const jwt = require('jsonwebtoken');
+const verifyToken = require('../utils/verifyToken');
+const { StatusCodes } = require('http-status-codes');
+const internalErr = require('../middlewares/error');
+require('dotenv').config();
 
-async function authMiddleware(req, res, next) {
-  const token = req.cookies?.token;
-
-  if (!token) {
-    return res.status(401).json({ message: 'Unauthorized: No token provided' });
-  }
-
+function authMiddleware(req, res, next) {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    const token = req?.cookies?.token;
+
+    if (!token) {
+      return res.status(StatusCodes.UNAUTHORIZED).json({ error: 'Authentication required' });
+    }
+
+    const decoded = verifyToken(token);
+    req.userData = decoded;
+
     next();
   } catch (err) {
-    return res.status(401).json({ message: 'Unauthorized: Invalid or expired token' });
+    if (err.name === 'TokenExpiredError') {
+      return res.status(StatusCodes.UNAUTHORIZED).json({ error: 'Expired Token' });
+    } else if (err.name === 'JsonWebTokenError') {
+      return res.status(StatusCodes.UNAUTHORIZED).json({ error: 'Invalid Token' });
+    } else {
+      return internalErr(err, req, res);
+    }
   }
 }
 
