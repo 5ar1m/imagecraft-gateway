@@ -44,12 +44,16 @@ async function uploadImage (req, res) {
         await s3.upload(params).promise();
 
         try {
-            await addImage({
+            const imageInfo = await addImage({
                 name: fileKey,
                 mimeType: file.mimetype,
                 userId: req.userData.userId
             });
-        return res.status(StatusCodes.OK).json({ message: 'Image Uploaded Successfully', name: fileKey });
+        return res.status(StatusCodes.OK).json({ 
+            message: 'Image Uploaded Successfully', 
+            imageId: imageInfo.id, 
+            name: imageInfo.name 
+        });
 
         } catch (dbErr) {
             await s3.deleteObject({
