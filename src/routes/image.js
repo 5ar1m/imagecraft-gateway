@@ -1,14 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middlewares/auth');
 const {handleUpload, uploadImage, getImage, downloadImage, listImages} = require('../controllers/image');
 
-router.post('/', auth, handleUpload, uploadImage);
+router.post('/', handleUpload, uploadImage);
 
-router.get('/:id', auth, getImage);
+router.get('/:id', getImage);
 
-router.get('/download/:id', auth, downloadImage);
+router.get('/download/:id', downloadImage);
 
-router.get('/', auth, listImages);
+router.get('/', listImages);
 
 module.exports = router;
