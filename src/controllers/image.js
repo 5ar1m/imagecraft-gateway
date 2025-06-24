@@ -12,8 +12,8 @@ async function uploadImage (req, res) {
         return res.status(StatusCodes.BAD_REQUEST).json({ error: 'No file uploaded' });
     }
 
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)){
-        return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Unsupported File Format' });
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/bmp', 'image/x-icon', 'image/svg+xml'].includes(file.mimetype)){
+        return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Unsupported File Type' });
     }
 
     const fileKey = `${uuidv4()}-${file.originalname}`;
@@ -28,13 +28,22 @@ async function uploadImage (req, res) {
     try {
         await s3.upload(params).promise();
 
-        await addImage({
-            name: fileKey, 
-            mimeType: file.mimetype, 
-            userId: req.userData.userId
-        });
-
+        try {
+            await addImage({
+                name: fileKey,
+                mimeType: file.mimetype,
+                userId: req.userData.userId
+            });
         return res.status(StatusCodes.OK).json({ message: 'Image Uploaded Successfully', name: fileKey });
+
+        } catch (dbErr) {
+            await s3.deleteObject({
+                Bucket: process.env.AWS_S3_BUCKET,
+                Key: fileKey
+            }).promise();
+
+            throw dbErr;
+        }
 
     } catch (err) {
         return internalErr(err, req, res);
