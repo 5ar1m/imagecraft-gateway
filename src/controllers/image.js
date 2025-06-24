@@ -1,9 +1,24 @@
 const { v4: uuidv4 } = require('uuid');
+const multer = require('multer');
 const { StatusCodes } = require('http-status-codes');
 const s3 = require('../config/s3');
 const internalErr = require('../middlewares/error');
 const {addImage} = require('../services/image');
 require('dotenv').config();
+
+const storage = multer.memoryStorage();
+const temp = multer({ storage }).single('image');
+
+function handleUpload(req, res, next) {
+    temp(req, res, function (err) {
+        if (err instanceof multer.MulterError) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: err.message });
+        } else if (err) {
+            return internalErr(err, req, res);
+        }
+        next();
+    });
+}
 
 async function uploadImage (req, res) {
 
@@ -50,4 +65,4 @@ async function uploadImage (req, res) {
     }
 }
 
-module.exports = {uploadImage};
+module.exports = {handleUpload, uploadImage};
