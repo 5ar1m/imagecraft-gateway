@@ -8,7 +8,7 @@ const generateToken = require('../utils/generateToken');
 const verifyEmailToken = require('../utils/verifyEmailToken');
 const generateEmailToken = require('../utils/generateEmailToken');
 const sendVerificationEmail = require('../config/mail');
-const Redis = require('ioredis');
+const redis = require('../config/redis');
 require('dotenv').config();
 
 async function signIn(req, res) {
@@ -116,8 +116,6 @@ async function logOut(req, res) {
         internalErr(err, req, res);
     }
 }
-
-const redis = new Redis();
 
 async function initiateVerification(req, res) {
     try {
