@@ -6,6 +6,7 @@ const {addImage} = require('../services/image');
 require('dotenv').config();
 
 async function uploadImage (req, res) {
+
     const file = req.file;
     if (!file) {
         return res.status(StatusCodes.BAD_REQUEST).json({ error: 'No file uploaded' });
@@ -15,7 +16,7 @@ async function uploadImage (req, res) {
         return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Unsupported File Format' });
     }
 
-    const fileKey = `images/${uuidv4()}-${file.originalname}`;
+    const fileKey = `${uuidv4()}-${file.originalname}`;
 
     const params = {
         Bucket: process.env.AWS_S3_BUCKET,
@@ -29,8 +30,8 @@ async function uploadImage (req, res) {
 
         await addImage({
             name: fileKey, 
-            mimeType: file.mimeType, 
-            userId: req.userData.id
+            mimeType: file.mimetype, 
+            userId: req.userData.userId
         });
 
         return res.status(StatusCodes.OK).json({ message: 'Image Uploaded Successfully', name: fileKey });

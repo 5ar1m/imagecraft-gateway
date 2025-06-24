@@ -1,7 +1,7 @@
 const prisma = require('../prisma/client');
 
 async function addImage(data) {
-  return await prisma.user.create({
+  return await prisma.image.create({
     data: {
       name: data.name,
       mimeType: data.mimeType,
@@ -10,4 +10,4 @@ async function addImage(data) {
   });
 }
 
-module.export = {addImage};
+module.exports = {addImage};
