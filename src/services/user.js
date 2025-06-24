@@ -22,7 +22,16 @@ async function getUserById(id) {
   });
 }
 
+async function updateVerification(id) {
+  await prisma.user.update({
+    where: { id: Number(id) },
+    data: { isVerified: true }
+  });
+}
+
 module.exports = {
   getUserByEmail,
   createUser,
+  getUserById,
+  updateVerification
 };
