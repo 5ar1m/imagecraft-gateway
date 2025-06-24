@@ -24,9 +24,9 @@ async function getAllImagesByUser(userId) {
       name: true,
     },
     orderBy: {
-      createdAt: 'desc'
+      uploadedAt: 'desc'
     }
   });
 }
 
-module.exports = {addImage, getImageById, getImageById};
+module.exports = {addImage, getImageById, getAllImagesByUser};

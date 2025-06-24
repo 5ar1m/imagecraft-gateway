@@ -5,7 +5,7 @@ const fs = require('fs');
 const { StatusCodes } = require('http-status-codes');
 const s3 = require('../config/s3');
 const internalErr = require('../middlewares/error');
-const {addImage, getImageById, getImageById} = require('../services/image');
+const {addImage, getImageById, getAllImagesByUser} = require('../services/image');
 require('dotenv').config();
 
 const storage = multer.diskStorage({
@@ -180,9 +180,19 @@ async function downloadImage(req, res) {
     }
 }
 
+async function listImages(req, res) {
+    try {
+        const images = await getAllImagesByUser(req.userData.userId);
+        return res.status(StatusCodes.OK).json({ images });
+    } catch (err) {
+        return internalErr(err, req, res);
+    }
+}
+
 module.exports = {
     handleUpload, 
     uploadImage,
     getImage,
-    downloadImage
+    downloadImage,
+    listImages
 };
