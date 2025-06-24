@@ -5,7 +5,7 @@ const fs = require('fs');
 const { StatusCodes } = require('http-status-codes');
 const s3 = require('../config/s3');
 const internalErr = require('../middlewares/error');
-const {addImage} = require('../services/image');
+const {addImage, getImageById, getImageById} = require('../services/image');
 require('dotenv').config();
 
 const storage = multer.diskStorage({
@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
     }
 });
 
-const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/bmp', 'image/x-icon', 'image/svg+xml'];
+const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/bmp'];
 
 function fileFilter(req, file, cb) {
     if (allowedTypes.includes(file.mimetype)) {
@@ -104,12 +104,85 @@ async function uploadImage(req, res) {
 }
 
 async function getImage(req, res){
+    const id  = parseInt(req.params.id);
 
+    try {
+        const image = await getImageById(Number(id));
+        if (!image) {
+            return res.status(StatusCodes.NOT_FOUND).json({ error: 'Image not found' });
+        }
 
+        if (image.userId !== req.userData.userId) {
+        return res.status(StatusCodes.FORBIDDEN).json({ error: 'Access denied' });
+        }
+
+        const params = {
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: image.name,
+            Expires: 30
+        };
+
+        const url = s3.getSignedUrl('getObject', params);
+
+        return res.status(StatusCodes.OK).json({ url });
+
+    } catch (err) {
+        return internalErr(err, req, res);
+    }
+
+}
+
+const mimeTypes = {
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    webp: 'image/webp',
+    bmp: 'image/bmp'
+};
+
+async function downloadImage(req, res) {
+    const id = parseInt(req.params.id);
+    const format = req.query.format || 'jpeg';
+
+    const desiredMime = mimeTypes[format];
+
+    if (!desiredMime) {
+        return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Unsupported format' });
+    }
+
+    try {
+        const image = await getImageById(id);
+        if (!image) {
+            return res.status(StatusCodes.NOT_FOUND).json({ error: 'Image not found' });
+        }
+
+        if (image.userId !== req.userData.userId) {
+            return res.status(StatusCodes.FORBIDDEN).json({ error: 'Access Denied' });
+        }
+
+        const s3Stream = s3.getObject({
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: image.name
+        }).createReadStream();
+
+        res.setHeader('Content-Type', desiredMime);
+
+        const originalFormat = image.mimeType;
+
+        if (originalFormat === desiredMime) {
+            return s3Stream.pipe(res);
+        }
+
+        //talk to imagecraft-transformation service
+        res.status(StatusCodes.OK).json({message: 'talk ya later'});
+
+    } catch (err) {
+        internalErr(err, req, res);
+    }
 }
 
 module.exports = {
     handleUpload, 
     uploadImage,
-    getImage
+    getImage,
+    downloadImage
 };
